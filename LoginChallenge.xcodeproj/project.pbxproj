@@ -24,6 +24,7 @@
 		D6673346279B07F400CC8AB3 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6673345279B07F400CC8AB3 /* HomeViewController.swift */; };
 		D6673348279BA6AC00CC8AB3 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6673347279BA6AC00CC8AB3 /* HomeView.swift */; };
 		D667334A279BAAED00CC8AB3 /* ActivityIndicatorCoverModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6673349279BAAED00CC8AB3 /* ActivityIndicatorCoverModifier.swift */; };
+		D667334D279C331700CC8AB3 /* UseCases in Frameworks */ = {isa = PBXBuildFile; productRef = D667334C279C331700CC8AB3 /* UseCases */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -70,6 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D667334D279C331700CC8AB3 /* UseCases in Frameworks */,
 				D667333B279ACAEC00CC8AB3 /* Logging in Frameworks */,
 				D6673341279AFFF900CC8AB3 /* APIServices in Frameworks */,
 				D6673343279AFFF900CC8AB3 /* Entities in Frameworks */,
@@ -186,6 +188,7 @@
 				D667333A279ACAEC00CC8AB3 /* Logging */,
 				D6673340279AFFF900CC8AB3 /* APIServices */,
 				D6673342279AFFF900CC8AB3 /* Entities */,
+				D667334C279C331700CC8AB3 /* UseCases */,
 			);
 			productName = LoginChallenge;
 			productReference = D66732FC279ABE8C00CC8AB3 /* LoginChallenge.app */;
@@ -683,6 +686,10 @@
 		D6673342279AFFF900CC8AB3 /* Entities */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Entities;
+		};
+		D667334C279C331700CC8AB3 /* UseCases */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = UseCases;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
