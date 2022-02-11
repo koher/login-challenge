@@ -5,7 +5,7 @@ import APIServices
 
 @MainActor
 struct HomeView: View {
-    @StateObject private var state: HomeViewState
+    @StateObject private var state: HomeViewState<AuthService>
 
     init(dismiss: @escaping () async -> Void) {
         self._state = .init(wrappedValue: HomeViewState(dismiss: dismiss))

@@ -4,7 +4,7 @@ import APIServices
 import Logging
 
 @MainActor
-public final class LoginViewState: ObservableObject {
+public final class LoginViewState<AuthService: AuthServiceProtocol>: ObservableObject {
     @Published public var id: String = ""
     @Published public var password: String = ""
     
