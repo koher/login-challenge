@@ -1,4 +1,4 @@
-public struct User: Identifiable, Codable, Sendable {
+public struct User: Identifiable, Equatable, Codable, Sendable {
     public let id: ID
     public var name: String
     public var introduction: String
