@@ -15,7 +15,6 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         .package(path: "../Entities"),
-        .package(path: "../APIServices"), // TODO: APIServices を抽象化したら後で取り除く
         .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
     ],
     targets: [
@@ -23,7 +22,7 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "UseCases",
-            dependencies: ["Entities", "APIServices", .product(name: "Logging", package: "swift-log")]),
+            dependencies: ["Entities", .product(name: "Logging", package: "swift-log")]),
         .testTarget(
             name: "UseCasesTests",
             dependencies: ["UseCases"]),
