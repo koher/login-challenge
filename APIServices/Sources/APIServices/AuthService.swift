@@ -1,7 +1,8 @@
 import Foundation
 import Entities
+import UseCases
 
-public enum AuthService {
+public enum AuthService: AuthServiceProtocol {
     static internal private(set) var token: Data?
     
     public static func logInWith(id: String, password: String) async throws {

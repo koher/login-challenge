@@ -1,6 +1,7 @@
 import Entities
+import UseCases
 
-public enum UserService {
+public enum UserService: UserServiceProtocol {
     public static func currentUser() async throws -> User {
         guard let _ = AuthService.token else {
             throw AuthenticationError()

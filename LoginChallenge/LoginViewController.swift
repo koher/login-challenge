@@ -6,9 +6,6 @@ import APIServices
 import Logging
 import SwiftUI
 
-// FIXME: 依存関係を整理して取り除く
-extension AuthService: AuthServiceProtocol {}
-
 @MainActor
 final class LoginViewController: UIViewController {
     private let state: LoginViewState<AuthService> = .init()
