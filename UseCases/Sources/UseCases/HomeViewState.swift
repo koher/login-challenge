@@ -4,7 +4,7 @@ import APIServices
 import Logging
 
 @MainActor
-public final class HomeViewState<AuthService: AuthServiceProtocol>: ObservableObject {
+public final class HomeViewState<AuthService: AuthServiceProtocol, UserService: UserServiceProtocol>: ObservableObject {
     @Published public private(set) var user: User?
     
     @Published public private(set) var isReloading: Bool = false

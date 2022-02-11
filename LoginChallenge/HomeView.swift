@@ -3,9 +3,12 @@ import Entities
 import UseCases
 import APIServices
 
+// FIXME: 依存関係を整理して取り除く
+extension UserService: UserServiceProtocol {}
+
 @MainActor
 struct HomeView: View {
-    @StateObject private var state: HomeViewState<AuthService>
+    @StateObject private var state: HomeViewState<AuthService, UserService>
 
     init(dismiss: @escaping () async -> Void) {
         self._state = .init(wrappedValue: HomeViewState(dismiss: dismiss))
