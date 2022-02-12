@@ -6,16 +6,28 @@ import Entities
 final class HomeViewStateTests: XCTestCase {
     func testLoadUser() async {
         await XCTContext.runActivityAsync(named: "成功") { _ in
-            let state: HomeViewState<AuthService, UserService> = .init(dismiss: {})
-            
             let user: User = .init(id: "koher", name: "Yuta Koshizawa", introduction: "")
 
-            XCTAssertNil(state.user)
-            async let x: Void = state.loadUser()
-            await Task.sleep()
-            UserService.currentUserContinuation!.resume(returning: user)
-            await x
-            XCTAssertEqual(state.user, user)
+            await XCTContext.runActivityAsync(named: "user") { _ in
+                let state: HomeViewState<AuthService, UserService> = .init(dismiss: {})
+                XCTAssertNil(state.user)
+                async let x: Void = state.loadUser()
+                await Task.sleep()
+                UserService.currentUserContinuation!.resume(returning: user)
+                await x
+                XCTAssertEqual(state.user, user)
+            }
+
+            await XCTContext.runActivityAsync(named: "isLoadingUser") { _ in
+                let state: HomeViewState<AuthService, UserService> = .init(dismiss: {})
+                XCTAssertFalse(state.isLoadingUser)
+                async let x: Void = state.loadUser()
+                await Task.sleep()
+                XCTAssertTrue(state.isLoadingUser)
+                UserService.currentUserContinuation!.resume(returning: user)
+                await x
+                XCTAssertFalse(state.isLoadingUser)
+            }
         }
         
         await XCTContext.runActivityAsync(named: "失敗") { _ in
