@@ -33,6 +33,10 @@ public final class HomeViewState<AuthService: AuthServiceProtocol, UserService: 
         
         // 処理中はリロードボタン押下を受け付けない。
         isLoadingUser = true
+        defer {
+            // 処理が完了したのでリロードボタン押下を再度受け付けるように。
+            isLoadingUser = false
+        }
         
         do {
             // API を叩いて User を取得。
@@ -61,9 +65,6 @@ public final class HomeViewState<AuthService: AuthServiceProtocol, UserService: 
             // エラー情報を表示。
             presentsSystemErrorAlert = true
         }
-        
-        // 処理が完了したのでリロードボタン押下を再度受け付けるように。
-        isLoadingUser = false
     }
     
     public func logOut() async {
