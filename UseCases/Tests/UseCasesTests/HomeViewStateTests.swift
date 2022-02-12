@@ -10,22 +10,28 @@ final class HomeViewStateTests: XCTestCase {
 
             await XCTContext.runActivityAsync(named: "user") { _ in
                 let state: HomeViewState<AuthService, UserService> = .init(dismiss: {})
+                
                 XCTAssertNil(state.user)
+                
                 async let x: Void = state.loadUser()
                 await Task.sleep()
                 UserService.currentUserContinuation!.resume(returning: user)
                 await x
+                
                 XCTAssertEqual(state.user, user)
             }
 
             await XCTContext.runActivityAsync(named: "isLoadingUser") { _ in
                 let state: HomeViewState<AuthService, UserService> = .init(dismiss: {})
+                
                 XCTAssertFalse(state.isLoadingUser)
+                
                 async let x: Void = state.loadUser()
                 await Task.sleep()
                 XCTAssertTrue(state.isLoadingUser)
                 UserService.currentUserContinuation!.resume(returning: user)
                 await x
+                
                 XCTAssertFalse(state.isLoadingUser)
             }
         }
