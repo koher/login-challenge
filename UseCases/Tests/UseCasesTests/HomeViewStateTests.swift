@@ -8,7 +8,7 @@ final class HomeViewStateTests: XCTestCase {
         await XCTContext.runActivityAsync(named: "成功") { _ in
             let user: User = .init(id: "koher", name: "Yuta Koshizawa", introduction: "")
 
-            await XCTContext.runActivityAsync(named: "user") { _ in
+            await XCTContext.runActivityAsync(named: "userが更新される") { _ in
                 let state: HomeViewState<AuthService, UserService> = .init(dismiss: {})
                 
                 XCTAssertNil(state.user)
@@ -21,7 +21,7 @@ final class HomeViewStateTests: XCTestCase {
                 XCTAssertEqual(state.user, user)
             }
 
-            await XCTContext.runActivityAsync(named: "isLoadingUser") { _ in
+            await XCTContext.runActivityAsync(named: "ロード中はisLoadingUserがtrueになる") { _ in
                 let state: HomeViewState<AuthService, UserService> = .init(dismiss: {})
                 
                 XCTAssertFalse(state.isLoadingUser)
