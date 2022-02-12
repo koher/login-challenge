@@ -6,7 +6,7 @@ import Logging
 public final class HomeViewState<AuthService: AuthServiceProtocol, UserService: UserServiceProtocol>: ObservableObject {
     @Published public private(set) var user: User?
     
-    @Published public private(set) var isReloading: Bool = false
+    @Published public private(set) var isLoadingUser: Bool = false
     @Published public private(set) var isLoggingOut: Bool = false
     
     @Published public private(set) var presentsActivityIndocator: Bool = false
@@ -29,10 +29,10 @@ public final class HomeViewState<AuthService: AuthServiceProtocol, UserService: 
     
     public func loadUser() async {
         // 処理が二重に実行されるのを防ぐ。
-        if isReloading { return }
+        if isLoadingUser { return }
         
         // 処理中はリロードボタン押下を受け付けない。
-        isReloading = true
+        isLoadingUser = true
         
         do {
             // API を叩いて User を取得。
@@ -63,7 +63,7 @@ public final class HomeViewState<AuthService: AuthServiceProtocol, UserService: 
         }
         
         // 処理が完了したのでリロードボタン押下を再度受け付けるように。
-        isReloading = false
+        isLoadingUser = false
     }
     
     public func logOut() async {
