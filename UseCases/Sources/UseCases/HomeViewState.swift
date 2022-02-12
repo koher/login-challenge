@@ -6,14 +6,49 @@ import Logging
 public final class HomeViewState<AuthService: AuthServiceProtocol, UserService: UserServiceProtocol>: ObservableObject {
     @Published public private(set) var user: User?
     
-    @Published public private(set) var isLoadingUser: Bool = false
-    @Published public private(set) var isLoggingOut: Bool = false
+    @Published private var loadingUserState: LoadingUserState = .waiting
     
-    @Published public private(set) var presentsActivityIndocator: Bool = false
-    @Published public var presentsAuthenticationErrorAlert: Bool = false
-    @Published public var presentsNetworkErrorAlert: Bool = false
-    @Published public var presentsServerErrorAlert: Bool = false
-    @Published public var presentsSystemErrorAlert: Bool = false
+    public var isLoadingUser: Bool {
+        guard case .loading = loadingUserState else { return false }
+        return true
+    }
+    
+    public var presentsAuthenticationErrorAlert: Bool {
+        get {
+            guard case .failure(is AuthenticationError) = loadingUserState else { return false }
+            return true
+        }
+        set { if !newValue { loadingUserState.clearError() } }
+    }
+    
+    public var presentsNetworkErrorAlert: Bool {
+        get {
+            guard case .failure(is NetworkError) = loadingUserState else { return false }
+            return true
+        }
+        set { if !newValue { loadingUserState.clearError() } }
+    }
+    
+    public var presentsServerErrorAlert: Bool {
+        get {
+            guard case .failure(is ServerError) = loadingUserState else { return false }
+            return true
+        }
+        set { if !newValue { loadingUserState.clearError() } }
+    }
+    
+    public var presentsSystemErrorAlert: Bool {
+        get {
+            switch loadingUserState {
+            case .waiting, .loading, .failure(is AuthenticationError), .failure(is NetworkError), .failure(is ServerError): return false
+            case .failure(_): return true
+            }
+        }
+        set { if !newValue { loadingUserState.clearError() } }
+    }
+
+    @Published public private(set) var isLoggingOut: Bool = false
+@Published public private(set) var presentsActivityIndocator: Bool = false
     
     public let dismiss: () async -> Void
     
@@ -32,11 +67,7 @@ public final class HomeViewState<AuthService: AuthServiceProtocol, UserService: 
         if isLoadingUser { return }
         
         // 処理中はリロードボタン押下を受け付けない。
-        isLoadingUser = true
-        defer {
-            // 処理が完了したのでリロードボタン押下を再度受け付けるように。
-            isLoadingUser = false
-        }
+        loadingUserState.startLoading()
         
         do {
             // API を叩いて User を取得。
@@ -44,26 +75,14 @@ public final class HomeViewState<AuthService: AuthServiceProtocol, UserService: 
             
             // 取得した情報を View に反映。
             self.user = user
-        } catch let error as AuthenticationError {
-            logger.info("\(error)")
             
-            // エラー情報を表示。
-            presentsAuthenticationErrorAlert = true
-        } catch let error as NetworkError {
-            logger.info("\(error)")
-            
-            // エラー情報を表示。
-            presentsNetworkErrorAlert = true
-        } catch let error as ServerError {
-            logger.info("\(error)")
-            
-            // エラー情報を表示。
-            presentsServerErrorAlert = true
+            // 処理が完了したのでリロードボタン押下を再度受け付けるように。
+            loadingUserState.finishLoading()
         } catch {
             logger.info("\(error)")
             
             // エラー情報を表示。
-            presentsSystemErrorAlert = true
+            loadingUserState.failLoading(with: error)
         }
     }
     
@@ -88,5 +107,45 @@ public final class HomeViewState<AuthService: AuthServiceProtocol, UserService: 
         
         // この View から遷移するのでボタンの押下受け付けは再開しない。
         // 遷移アニメーション中に処理が実行されることを防ぐ。
+    }
+}
+
+extension HomeViewState {
+    private enum LoadingUserState {
+        case waiting
+        case loading
+        case failure(Error)
+        
+        mutating func startLoading() {
+            guard case .waiting = self else {
+                assertionFailure()
+                return
+            }
+            self = .loading
+        }
+        
+        mutating func finishLoading() {
+            guard case .loading = self else {
+                assertionFailure()
+                return
+            }
+            self = .waiting
+        }
+        
+        mutating func failLoading(with error: Error) {
+            guard case .loading = self else {
+                assertionFailure()
+                return
+            }
+            self = .failure(error)
+        }
+        
+        mutating func clearError() {
+            guard case .failure(_) = self else {
+                assertionFailure()
+                return
+            }
+            self = .waiting
+        }
     }
 }
