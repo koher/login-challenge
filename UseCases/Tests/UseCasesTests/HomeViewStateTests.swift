@@ -9,10 +9,12 @@ final class HomeViewStateTests: XCTestCase {
             let state: HomeViewState<AuthService, UserService> = .init(dismiss: {})
             
             let user: User = .init(id: "koher", name: "Yuta Koshizawa", introduction: "")
-            UserService._currentUser = .success(user)
 
             XCTAssertNil(state.user)
-            await state.loadUser()
+            async let x: Void = state.loadUser()
+            await Task.sleep()
+            UserService.currentUserContinuation!.resume(returning: user)
+            await x
             XCTAssertEqual(state.user, user)
         }
         
@@ -20,40 +22,44 @@ final class HomeViewStateTests: XCTestCase {
             await XCTContext.runActivityAsync(named: "認証エラー") { _ in
                 let state: HomeViewState<AuthService, UserService> = .init(dismiss: {})
                 
-                UserService._currentUser = .failure(AuthenticationError())
-                
                 XCTAssertFalse(state.presentsAuthenticationErrorAlert)
-                await state.loadUser()
+                async let x: Void = state.loadUser()
+                await Task.sleep()
+                UserService.currentUserContinuation!.resume(throwing: AuthenticationError())
+                await x
                 XCTAssertTrue(state.presentsAuthenticationErrorAlert)
             }
             
             await XCTContext.runActivityAsync(named: "ネットワークエラー") { _ in
                 let state: HomeViewState<AuthService, UserService> = .init(dismiss: {})
                 
-                UserService._currentUser = .failure(NetworkError(cause: GeneralError(message: "")))
-                
                 XCTAssertFalse(state.presentsNetworkErrorAlert)
-                await state.loadUser()
+                async let x: Void = state.loadUser()
+                await Task.sleep()
+                UserService.currentUserContinuation!.resume(throwing: NetworkError(cause: GeneralError(message: "")))
+                await x
                 XCTAssertTrue(state.presentsNetworkErrorAlert)
             }
             
             await XCTContext.runActivityAsync(named: "サーバーエラー") { _ in
                 let state: HomeViewState<AuthService, UserService> = .init(dismiss: {})
                 
-                UserService._currentUser = .failure(ServerError.internal(cause: GeneralError(message: "")))
-                
                 XCTAssertFalse(state.presentsServerErrorAlert)
-                await state.loadUser()
+                async let x: Void = state.loadUser()
+                await Task.sleep()
+                UserService.currentUserContinuation!.resume(throwing: ServerError.internal(cause: GeneralError(message: "")))
+                await x
                 XCTAssertTrue(state.presentsServerErrorAlert)
             }
             
             await XCTContext.runActivityAsync(named: "システムエラー") { _ in
                 let state: HomeViewState<AuthService, UserService> = .init(dismiss: {})
                 
-                UserService._currentUser = .failure(GeneralError(message: ""))
-                
                 XCTAssertFalse(state.presentsSystemErrorAlert)
-                await state.loadUser()
+                async let x: Void = state.loadUser()
+                await Task.sleep()
+                UserService.currentUserContinuation!.resume(throwing: GeneralError(message: ""))
+                await x
                 XCTAssertTrue(state.presentsSystemErrorAlert)
             }
         }
@@ -65,9 +71,21 @@ private enum AuthService: AuthServiceProtocol {
 }
 
 private enum UserService: UserServiceProtocol {
-    static var _currentUser: Result<User, Error>?
+    static private(set) var currentUserContinuation: CheckedContinuation<User, Error>?
     
     static func currentUser() async throws -> User {
-        try _currentUser!.get()
+        try await withCheckedThrowingContinuation { continuation in
+            currentUserContinuation = continuation
+        }
+    }
+}
+
+extension Task where Success == Never, Failure == Never {
+    static func sleep() async {
+        await withCheckedContinuation { continuation in
+            Task<Void, Never> {
+                continuation.resume()
+            }
+        }
     }
 }
