@@ -82,7 +82,7 @@ public final class HomeViewState<AuthService: AuthServiceProtocol, UserService: 
             logger.info("\(error)")
             
             // エラー情報を表示。
-            loadingUserState.failLoading(with: error)
+            loadingUserState.failToLoad(with: error)
         }
     }
     
@@ -132,7 +132,7 @@ extension HomeViewState {
             self = .waiting
         }
         
-        mutating func failLoading(with error: Error) {
+        mutating func failToLoad(with error: Error) {
             guard case .loading = self else {
                 assertionFailure()
                 return
