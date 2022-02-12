@@ -19,80 +19,72 @@ final class LoginViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        do {
-            state.transitionToHomeView
-                .sink { [weak self] _ in
-                    guard let self = self else { return }
-                    // HomeView に遷移。
-                    Task {
-                        let destination = UIHostingController(rootView: HomeView(dismiss: { [weak self] in
-                            await self?.dismiss(animated: true)
-                        }))
-                        destination.modalPresentationStyle = .fullScreen
-                        destination.modalTransitionStyle = .flipHorizontal
-                        await self.present(destination, animated: true)
+        state.transitionToHomeView
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                // HomeView に遷移。
+                Task {
+                    let destination = UIHostingController(rootView: HomeView(dismiss: { [weak self] in
+                        await self?.dismiss(animated: true)
+                    }))
+                    destination.modalPresentationStyle = .fullScreen
+                    destination.modalTransitionStyle = .flipHorizontal
+                    await self.present(destination, animated: true)
+                }
+            }
+            .store(in: &cancellables)
+        
+        state.$presentsActivityIndicator
+            .sink { [weak self] presents in
+                guard let self = self else { return }
+                Task {
+                    if presents {
+                        let activityIndicatorViewController: ActivityIndicatorViewController = .init()
+                        activityIndicatorViewController.modalPresentationStyle = .overFullScreen
+                        activityIndicatorViewController.modalTransitionStyle = .crossDissolve
+                        await self.present(activityIndicatorViewController, animated: true)
+                    } else {
+                        await self.dismiss(animated: true)
                     }
                 }
-                .store(in: &cancellables)
-        }
+            }
+            .store(in: &cancellables)
         
-        do {
-            state.$presentsActivityIndicator
-                .sink { [weak self] presents in
-                    guard let self = self else { return }
-                    Task {
-                        if presents {
-                            let activityIndicatorViewController: ActivityIndicatorViewController = .init()
-                            activityIndicatorViewController.modalPresentationStyle = .overFullScreen
-                            activityIndicatorViewController.modalTransitionStyle = .crossDissolve
-                            await self.present(activityIndicatorViewController, animated: true)
+        state.$error
+            .sink { [weak self] error in
+                guard let self = self else { return }
+                Task {
+                    if let error = error {
+                        let title: String
+                        let message: String
+                        if error is LoginError {
+                            title = "ログインエラー"
+                            message = "IDまたはパスワードが正しくありません。"
+                        } else if error is NetworkError {
+                            title = "ネットワークエラー"
+                            message = "通信に失敗しました。ネットワークの状態を確認して下さい。"
+                        } else if error is ServerError {
+                            title = "サーバーエラー"
+                            message = "しばらくしてからもう一度お試し下さい。"
                         } else {
-                            await self.dismiss(animated: true)
+                            title = "システムエラー"
+                            message = "エラーが発生しました。"
                         }
+                        let alertController: UIAlertController = .init(title: title, message: message, preferredStyle: .alert)
+                        alertController.addAction(.init(title: "閉じる", style: .default, handler: nil))
+                        await self.present(alertController, animated: true)
                     }
                 }
-                .store(in: &cancellables)
-        }
+            }
+            .store(in: &cancellables)
         
-        do {
-            state.$error
-                .sink { [weak self] error in
-                    guard let self = self else { return }
-                    Task {
-                        if let error = error {
-                            let title: String
-                            let message: String
-                            if error is LoginError {
-                                title = "ログインエラー"
-                                message = "IDまたはパスワードが正しくありません。"
-                            } else if error is NetworkError {
-                                title = "ネットワークエラー"
-                                message = "通信に失敗しました。ネットワークの状態を確認して下さい。"
-                            } else if error is ServerError {
-                                title = "サーバーエラー"
-                                message = "しばらくしてからもう一度お試し下さい。"
-                            } else {
-                                title = "システムエラー"
-                                message = "エラーが発生しました。"
-                            }
-                            let alertController: UIAlertController = .init(title: title, message: message, preferredStyle: .alert)
-                            alertController.addAction(.init(title: "閉じる", style: .default, handler: nil))
-                            await self.present(alertController, animated: true)
-                        }
-                    }
-                }
-                .store(in: &cancellables)
-        }
-        
-        do {
-            state.objectWillChange
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] _ in
-                    guard let self = self else { return }
-                    self.loginButton.isEnabled = self.state.canLogin
-                }
-                .store(in: &cancellables)
-        }
+        state.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.loginButton.isEnabled = self.state.canLogin
+            }
+            .store(in: &cancellables)
     }
     
     override func viewWillAppear(_ animated: Bool) {
